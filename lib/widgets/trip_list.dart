@@ -29,12 +29,15 @@ class TripList extends StatelessWidget {
             );
           })
         : ListView(
+            scrollDirection: Axis.vertical,
+            shrinkWrap: true,
             children: trips
                 .map((tx) => TripItem(
                       key: ValueKey(tx.id),
                       deleteTx: deleteTx,
                       trip: tx,
                     ))
-                .toList());
+                .toList(),
+          );
   }
 }

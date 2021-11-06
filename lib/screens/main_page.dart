@@ -2,9 +2,10 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:schengen_tracker/models/trip.dart';
-import 'package:schengen_tracker/widgets/new_trip.dart';
 import 'package:schengen_tracker/widgets/trip_list.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MainPage extends StatefulWidget {
   @override
@@ -12,44 +13,73 @@ class MainPage extends StatefulWidget {
 }
 
 class MainPageState extends State<MainPage> {
-  final List<Trip> _userTrips = [];
-  int days_left = 0;
+  List<Trip> _userTrips = [];
+  int days_left = 90;
 
-  List<Trip> get _recentTransactions {
-    return _userTrips.where((tx) {
-      return tx.arrive.isAfter(
-        DateTime.now().subtract(
-          Duration(days: 90),
-        ),
-      );
-    }).toList();
-  }
+  // Loops throught valid trips and sums duration for each trip and then save it to daysLeft
+  void updateDaysLeft() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    int sum = 0;
 
-  void _addNewTrip(DateTime arrive, DateTime departure, int duration) {
-    final newTx = Trip(
-      id: DateTime.now().toString(),
-      arrive: arrive,
-      departure: departure,
-      duration: duration,
-    );
+    // prefs.remove('listOfTrips');
+    // checks for triplist existence
+    if (prefs.getString('listOfTrips') == null) {
+      return;
+    }
+
+    //Gets trips from database
+    String? tripsString = prefs.getString('listOfTrips');
+    _userTrips = Trip.decode(tripsString!);
+
+    //Gets recent Transactions
+    _recentTransactions;
+
+    // gets sum of durations
+    for (int i = 0; i < _userTrips.length; i++) {
+      sum += _userTrips[i].duration;
+    }
 
     setState(() {
-      _userTrips.add(newTx);
+      days_left = days_left - sum;
     });
   }
 
-  void _startAddNewTransaction(BuildContext ctx) {
-    showModalBottomSheet(
-      context: ctx,
-      builder: (_) {
-        return GestureDetector(
-          onTap: () {},
-          child: NewTrip(_addNewTrip),
-          behavior: HitTestBehavior.opaque,
-        );
-      },
-    );
+  List<Trip> get _recentTransactions {
+    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
+    return _userTrips.where((tx) {
+      return dateFormat.parse(tx.arrive).isAfter(
+            DateTime.now().subtract(
+              const Duration(days: 90),
+            ),
+          );
+    }).toList();
   }
+
+  // void _addNewTrip(DateTime arrive, DateTime departure, int duration) {
+  //   final newTx = Trip(
+  //     id: DateTime.now().toString(),
+  //     arrive: arrive,
+  //     departure: departure,
+  //     duration: duration,
+  //   );
+
+  //   setState(() {
+  //     _userTrips.add(newTx);
+  //   });
+  // }
+
+  // void _startAddNewTransaction(BuildContext ctx) {
+  //   showModalBottomSheet(
+  //     context: ctx,
+  //     builder: (_) {
+  //       return GestureDetector(
+  //         onTap: () {},
+  //         child: NewTrip(_addNewTrip),
+  //         behavior: HitTestBehavior.opaque,
+  //       );
+  //     },
+  //   );
+  // }
 
   void _deleteTransaction(String id) {
     setState(() {
@@ -62,8 +92,7 @@ class MainPageState extends State<MainPage> {
   ) {
     return [
       Container(
-        //  margin: EdgeInsets.only(top: 33),
-        padding: EdgeInsets.only(bottom: 20),
+        padding: const EdgeInsets.only(bottom: 20),
       ),
       txListWidget,
     ];
@@ -71,41 +100,20 @@ class MainPageState extends State<MainPage> {
 
   @override
   Widget build(BuildContext context) {
-    final PreferredSizeWidget appBar = Platform.isIOS
-        ? CupertinoNavigationBar(
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                GestureDetector(
-                  child: Icon(CupertinoIcons.add),
-                  onTap: () => _startAddNewTransaction(context),
-                ),
-              ],
-            ),
-          )
-        : AppBar(
-            actions: <Widget>[
-              IconButton(
-                onPressed: () => _startAddNewTransaction(context),
-                icon: Icon(Icons.add),
-              ),
-            ],
-          ) as PreferredSizeWidget;
-    final txListWidget = Container(
-      child: TripList(_userTrips, _deleteTransaction),
-    );
+    updateDaysLeft();
+    final txListWidget = TripList(_userTrips, _deleteTransaction);
     final pageBody = SafeArea(
       child: Column(
         children: [
           Container(
-            margin: EdgeInsets.all(10),
-            padding: EdgeInsets.all(10),
+            margin: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(10),
             width: 200,
             height: 200,
-            child: const Center(
+            child: Center(
               child: Text(
-                "90",
-                style: TextStyle(
+                days_left.toString(),
+                style: const TextStyle(
                   fontSize: 68.0,
                   fontStyle: FontStyle.italic,
                   color: Colors.teal,
@@ -148,7 +156,7 @@ class MainPageState extends State<MainPage> {
             floatingActionButton: FloatingActionButton(
               elevation: 10,
               onPressed: () => Navigator.pushNamed(context, '/date_selection'),
-              child: Icon(Icons.add),
+              child: const Icon(Icons.add),
             ),
           );
   }
