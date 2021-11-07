@@ -30,18 +30,34 @@ class _DateSelectionScreenState extends State<DateSelectionScreen> {
     }
 
     addStringToSF() async {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
       int duration = Helpers.daysBetween(_arrive, _departure);
-      DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
-      final String encodedData = Trip.encode([
-        Trip(
-          id: dateFormat.format(DateTime.now()),
+      DateFormat dateFormat = DateFormat.yMMMMd();
+
+      String? tripsString = Helpers.prefs.getString('listOfTrips');
+      List<Trip> _userTrips;
+      final String encodedData;
+
+      if (tripsString != null) {
+        List<Trip> _userTrips = Trip.decode(tripsString);
+        _userTrips.add(Trip(
+          id: dateFormat.format(_arrive),
           arrive: dateFormat.format(_arrive),
           departure: dateFormat.format(_departure),
           duration: duration,
-        ),
-      ]);
-      prefs.setString('listOfTrips', encodedData);
+        ));
+        encodedData = Trip.encode(_userTrips);
+      } else {
+        encodedData = Trip.encode([
+          Trip(
+            id: dateFormat.format(_arrive),
+            arrive: dateFormat.format(_arrive),
+            departure: dateFormat.format(_departure),
+            duration: duration,
+          ),
+        ]);
+      }
+
+      Helpers.prefs.setString('listOfTrips', encodedData);
     }
 
     return Scaffold(

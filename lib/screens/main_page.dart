@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:schengen_tracker/helpers/helpers.dart';
 import 'package:schengen_tracker/models/trip.dart';
 import 'package:schengen_tracker/widgets/trip_list.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -17,36 +18,27 @@ class MainPageState extends State<MainPage> {
   int days_left = 90;
 
   // Loops throught valid trips and sums duration for each trip and then save it to daysLeft
-  void updateDaysLeft() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
+  void updateDaysLeft() {
     int sum = 0;
-
-    // prefs.remove('listOfTrips');
-    // checks for triplist existence
-    if (prefs.getString('listOfTrips') == null) {
-      return;
-    }
-
-    //Gets trips from database
-    String? tripsString = prefs.getString('listOfTrips');
-    _userTrips = Trip.decode(tripsString!);
-
-    //Gets recent Transactions
-    _recentTransactions;
-
     // gets sum of durations
     for (int i = 0; i < _userTrips.length; i++) {
       sum += _userTrips[i].duration;
     }
-
-    setState(() {
-      days_left = days_left - sum;
-    });
+    days_left = Helpers.lengthOfSchengen - sum;
   }
 
-  List<Trip> get _recentTransactions {
-    DateFormat dateFormat = DateFormat("yyyy-MM-dd HH:mm:ss");
-    return _userTrips.where((tx) {
+  Future<List<Trip>> get _recentTransactions async {
+    DateFormat dateFormat = DateFormat.yMMMMd();
+
+    // checks for listOfTrips existence
+    if (Helpers.prefs.getString('listOfTrips') != null) {
+      String? tripsString = Helpers.prefs.getString('listOfTrips');
+      _userTrips = Trip.decode(tripsString!);
+    }
+    List<Trip> tmp = _userTrips;
+    _userTrips = [];
+    //Gets trips from database that are within 90
+    return _userTrips = tmp.where((tx) {
       return dateFormat.parse(tx.arrive).isAfter(
             DateTime.now().subtract(
               const Duration(days: 90),
@@ -55,35 +47,11 @@ class MainPageState extends State<MainPage> {
     }).toList();
   }
 
-  // void _addNewTrip(DateTime arrive, DateTime departure, int duration) {
-  //   final newTx = Trip(
-  //     id: DateTime.now().toString(),
-  //     arrive: arrive,
-  //     departure: departure,
-  //     duration: duration,
-  //   );
-
-  //   setState(() {
-  //     _userTrips.add(newTx);
-  //   });
-  // }
-
-  // void _startAddNewTransaction(BuildContext ctx) {
-  //   showModalBottomSheet(
-  //     context: ctx,
-  //     builder: (_) {
-  //       return GestureDetector(
-  //         onTap: () {},
-  //         child: NewTrip(_addNewTrip),
-  //         behavior: HitTestBehavior.opaque,
-  //       );
-  //     },
-  //   );
-  // }
-
   void _deleteTransaction(String id) {
     setState(() {
       _userTrips.removeWhere((element) => element.id == id);
+      String encodedData = Trip.encode(_userTrips);
+      Helpers.prefs.setString('listOfTrips', encodedData);
     });
   }
 
@@ -100,6 +68,7 @@ class MainPageState extends State<MainPage> {
 
   @override
   Widget build(BuildContext context) {
+    _recentTransactions;
     updateDaysLeft();
     final txListWidget = TripList(_userTrips, _deleteTransaction);
     final pageBody = SafeArea(
@@ -111,20 +80,23 @@ class MainPageState extends State<MainPage> {
             width: 200,
             height: 200,
             child: Center(
-              child: Text(
-                days_left.toString(),
-                style: const TextStyle(
-                  fontSize: 68.0,
-                  fontStyle: FontStyle.italic,
-                  color: Colors.teal,
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 20),
+                child: Text(
+                  days_left.toString(),
+                  style: const TextStyle(
+                    fontSize: 68.0,
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
-                textAlign: TextAlign.center,
               ),
             ),
             decoration: BoxDecoration(
               border: Border.all(
                 width: 5,
-                color: Colors.deepPurple,
+                color: Colors.teal,
               ),
               borderRadius: const BorderRadius.all(
                 Radius.circular(200),
@@ -155,7 +127,8 @@ class MainPageState extends State<MainPage> {
                 FloatingActionButtonLocation.centerFloat,
             floatingActionButton: FloatingActionButton(
               elevation: 10,
-              onPressed: () => Navigator.pushNamed(context, '/date_selection'),
+              onPressed: () => Navigator.pushNamed(context, '/date_selection')
+                  .then((_) => setState(() {})),
               child: const Icon(Icons.add),
             ),
           );
