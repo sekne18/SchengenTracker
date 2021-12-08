@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "1076982016172",
+    "project_id": "schengen-app",
+    "storage_bucket": "schengen-app.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1076982016172:android:27ecafb2d6542e31419709",
+        "android_client_info": {
+          "package_name": "com.JanSekne.schengen_tracker"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1076982016172-f4rbaikhfuh789nkt2meengpt0d6rj7h.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA_wJjpUiVXbeBl5u_ztwK_bGkcqiiYH9E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1076982016172-f4rbaikhfuh789nkt2meengpt0d6rj7h.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

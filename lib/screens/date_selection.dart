@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:schengen_tracker/helpers/helpers.dart';
 import 'package:schengen_tracker/models/trip.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class DateSelectionScreen extends StatefulWidget {
+  const DateSelectionScreen({Key? key}) : super(key: key);
+
   @override
   State<DateSelectionScreen> createState() => _DateSelectionScreenState();
 }
@@ -29,6 +30,26 @@ class _DateSelectionScreenState extends State<DateSelectionScreen> {
           });
     }
 
+    Future<dynamic> _showDialog(BuildContext context) {
+      return showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text("Dates in use"),
+              content: const Text("You have already used these dates."),
+              shape: const CircleBorder(),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text("Ok"),
+                ),
+              ],
+            );
+          });
+    }
+
     addStringToSF() async {
       int duration = Helpers.daysBetween(_arrive, _departure);
       DateFormat dateFormat = DateFormat.yMMMMd();
@@ -39,25 +60,37 @@ class _DateSelectionScreenState extends State<DateSelectionScreen> {
 
       if (tripsString != null) {
         List<Trip> _userTrips = Trip.decode(tripsString);
+        bool used = false;
+        for (int i = 0; i < _userTrips.length; i++) {
+          DateTime startDate = DateTime.parse(_userTrips[i].arrive);
+          DateTime endDate = DateTime.parse(_userTrips[i].departure);
+          if (!((_arrive.isBefore(startDate) ||
+                  _arrive.isAfter(endDate.subtract(const Duration(days: 1)))) &&
+              (_departure.isBefore(startDate) ||
+                  _departure.isAfter(endDate)))) {
+            _showDialog;
+            return; // Date not usable
+          }
+        }
         _userTrips.add(Trip(
-          id: dateFormat.format(_arrive),
-          arrive: dateFormat.format(_arrive),
-          departure: dateFormat.format(_departure),
+          id: _arrive.toString(),
+          arrive: _arrive.toString(),
+          departure: _departure.toString(),
           duration: duration,
         ));
         encodedData = Trip.encode(_userTrips);
+        Helpers.prefs.setString('listOfTrips', encodedData);
       } else {
         encodedData = Trip.encode([
           Trip(
-            id: dateFormat.format(_arrive),
-            arrive: dateFormat.format(_arrive),
-            departure: dateFormat.format(_departure),
+            id: _arrive.toString(),
+            arrive: _arrive.toString(),
+            departure: _departure.toString(),
             duration: duration,
           ),
         ]);
+        Helpers.prefs.setString('listOfTrips', encodedData);
       }
-
-      Helpers.prefs.setString('listOfTrips', encodedData);
     }
 
     return Scaffold(

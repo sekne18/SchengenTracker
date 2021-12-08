@@ -3,10 +3,11 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:percent_indicator/circular_percent_indicator.dart';
+
 import 'package:schengen_tracker/helpers/helpers.dart';
 import 'package:schengen_tracker/models/trip.dart';
 import 'package:schengen_tracker/widgets/trip_list.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class MainPage extends StatefulWidget {
   @override
@@ -15,7 +16,7 @@ class MainPage extends StatefulWidget {
 
 class MainPageState extends State<MainPage> {
   List<Trip> _userTrips = [];
-  int days_left = 90;
+  int _days_left = 90;
 
   // Loops throught valid trips and sums duration for each trip and then save it to daysLeft
   void updateDaysLeft() {
@@ -24,12 +25,10 @@ class MainPageState extends State<MainPage> {
     for (int i = 0; i < _userTrips.length; i++) {
       sum += _userTrips[i].duration;
     }
-    days_left = Helpers.lengthOfSchengen - sum;
+    _days_left = Helpers.lengthOfSchengen - sum;
   }
 
   Future<List<Trip>> get _recentTransactions async {
-    DateFormat dateFormat = DateFormat.yMMMMd();
-
     // checks for listOfTrips existence
     if (Helpers.prefs.getString('listOfTrips') != null) {
       String? tripsString = Helpers.prefs.getString('listOfTrips');
@@ -37,13 +36,13 @@ class MainPageState extends State<MainPage> {
     }
     List<Trip> tmp = _userTrips;
     _userTrips = [];
-    //Gets trips from database that are within 90
+    //Gets trips from database that are within 90 days
     return _userTrips = tmp.where((tx) {
-      return dateFormat.parse(tx.arrive).isAfter(
-            DateTime.now().subtract(
-              const Duration(days: 90),
-            ),
-          );
+      return DateTime.parse(tx.arrive).isAfter(
+        DateTime.now().subtract(
+          const Duration(days: 90),
+        ),
+      );
     }).toList();
   }
 
@@ -75,43 +74,43 @@ class MainPageState extends State<MainPage> {
       child: Column(
         children: [
           Container(
-            margin: const EdgeInsets.all(10),
-            padding: const EdgeInsets.all(10),
-            width: 200,
-            height: 200,
-            child: Center(
-              child: Padding(
-                padding: const EdgeInsets.only(bottom: 20),
-                child: Text(
-                  days_left.toString(),
-                  style: const TextStyle(
-                    fontSize: 68.0,
-                    color: Colors.black,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
+            decoration: const BoxDecoration(
+              color: Colors.teal,
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(45),
+                bottomRight: Radius.circular(45),
               ),
             ),
-            decoration: BoxDecoration(
-              border: Border.all(
-                width: 5,
-                color: Colors.teal,
+            width: double.infinity,
+            child: Padding(
+              padding: const EdgeInsets.only(top: 20.0, bottom: 20.0),
+              child: CircularPercentIndicator(
+                radius: 160.0,
+                lineWidth: 7.0,
+                animationDuration: 1000,
+                animation: true,
+                percent: _days_left / 90,
+                center: Text(
+                  "Days left: " + _days_left.toString(),
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold, fontSize: 20.0),
+                ),
+                circularStrokeCap: CircularStrokeCap.round,
+                progressColor: Colors.white70,
+                backgroundColor: Colors.teal[800],
               ),
-              borderRadius: const BorderRadius.all(
-                Radius.circular(200),
-              ),
-              color: Colors.transparent,
             ),
           ),
-          SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: <Widget>[
-                ..._buildPortraitContent(
-                  txListWidget,
-                ),
-              ],
+          Expanded(
+            child: SingleChildScrollView(
+              physics: const ClampingScrollPhysics(),
+              child: Column(
+                children: <Widget>[
+                  ..._buildPortraitContent(
+                    txListWidget,
+                  ),
+                ],
+              ),
             ),
           ),
         ],

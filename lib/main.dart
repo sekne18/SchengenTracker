@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:schengen_tracker/helpers/helpers.dart';
 import 'package:schengen_tracker/screens/date_selection.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -18,18 +19,21 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
     return MaterialApp(
       title: 'Schengen Tracker',
       theme: ThemeData(
         backgroundColor: Colors.teal,
-        fontFamily: 'PlayfairDisplay',
-        colorScheme: ColorScheme.fromSwatch(primarySwatch: Colors.teal)
-            .copyWith(secondary: Colors.tealAccent[300]),
+        fontFamily: 'Nunito',
+        colorScheme: const ColorScheme.dark(),
       ),
       initialRoute: '/',
       routes: {
         '/': (context) => MainPage(),
-        '/date_selection': (context) => DateSelectionScreen(),
+        '/date_selection': (context) => const DateSelectionScreen(),
       },
     );
   }

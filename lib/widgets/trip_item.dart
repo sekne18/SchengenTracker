@@ -39,7 +39,16 @@ class TripItem extends StatelessWidget {
         ),
       ),
       child: Card(
-        elevation: 5,
+        elevation: 15,
+        shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(
+              Radius.circular(20),
+            ),
+            side: BorderSide(
+              width: 1,
+              color: Colors.transparent,
+            )),
+        color: Colors.white.withOpacity(0.1),
         margin: const EdgeInsets.symmetric(
           vertical: 8,
           horizontal: 5,
@@ -56,13 +65,16 @@ class TripItem extends StatelessWidget {
                     const Text(
                       'ARRIVE',
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: 14,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     Text(
-                      dateFormat.format(dateFormat.parse(trip.arrive)),
-                      style: const TextStyle(fontSize: 14),
+                      dateFormat.format(DateTime.parse(trip.arrive)),
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.white.withOpacity(0.6),
+                      ),
                     ),
                   ],
                 ),
@@ -78,13 +90,16 @@ class TripItem extends StatelessWidget {
                     const Text(
                       'DEPARTURE',
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: 14,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     Text(
-                      dateFormat.format(dateFormat.parse(trip.departure)),
-                      style: const TextStyle(fontSize: 14),
+                      dateFormat.format(DateTime.parse(trip.departure)),
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.white.withOpacity(0.6),
+                      ),
                     ),
                   ],
                 ),

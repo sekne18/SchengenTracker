@@ -28,9 +28,7 @@ class TripList extends StatelessWidget {
               ],
             );
           })
-        : ListView(
-            scrollDirection: Axis.vertical,
-            shrinkWrap: true,
+        : Column(
             children: trips
                 .map((tx) => TripItem(
                       key: ValueKey(tx.id),
