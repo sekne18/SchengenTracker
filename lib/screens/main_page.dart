@@ -83,7 +83,7 @@ class MainPageState extends State<MainPage> {
             ),
             width: double.infinity,
             child: Padding(
-              padding: const EdgeInsets.only(top: 20.0, bottom: 20.0),
+              padding: const EdgeInsets.only(top: 10.0, bottom: 20.0),
               child: CircularPercentIndicator(
                 radius: 160.0,
                 lineWidth: 7.0,
@@ -97,7 +97,7 @@ class MainPageState extends State<MainPage> {
                 ),
                 circularStrokeCap: CircularStrokeCap.round,
                 progressColor: Colors.white70,
-                backgroundColor: Colors.teal[800],
+                backgroundColor: Colors.teal[700],
               ),
             ),
           ),
