@@ -21,34 +21,45 @@ class _DateSelectionScreenState extends State<DateSelectionScreen> {
   @override
   Widget build(BuildContext context) {
     Widget _buildDepartureCalendar() {
-      return CalendarDatePicker(
-          initialDate: _dateTimeNotifier.value,
-          firstDate: _dateTimeNotifier.value,
-          lastDate: DateTime(DateTime.now().year + 100),
-          onDateChanged: (selectedDate) {
-            _departure = selectedDate;
-          });
+      return Theme(
+        data: Theme.of(context).copyWith(
+          colorScheme: const ColorScheme.dark(
+            primary: Colors.teal, // header background color
+          ),
+        ),
+        child: CalendarDatePicker(
+            initialDate: _dateTimeNotifier.value.add(
+              const Duration(days: 1),
+            ),
+            firstDate: _dateTimeNotifier.value.add(
+              const Duration(days: 1),
+            ),
+            lastDate: DateTime(DateTime.now().year + 100),
+            onDateChanged: (selectedDate) {
+              _departure = selectedDate;
+            }),
+      );
     }
 
-    Future<dynamic> _showDialog(BuildContext context) {
-      return showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text("Dates in use"),
-              content: const Text("You have already used these dates."),
-              shape: const CircleBorder(),
-              actions: <Widget>[
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: const Text("Ok"),
-                ),
-              ],
-            );
-          });
-    }
+    // Future<dynamic> _showDialog(BuildContext context) {
+    //   return showDialog(
+    //       context: context,
+    //       builder: (BuildContext context) {
+    //         return AlertDialog(
+    //           title: const Text("Dates in use"),
+    //           content: const Text("You have already used these dates."),
+    //           shape: const CircleBorder(),
+    //           actions: <Widget>[
+    //             TextButton(
+    //               onPressed: () {
+    //                 Navigator.of(context).pop();
+    //               },
+    //               child: const Text("Ok"),
+    //             ),
+    //           ],
+    //         );
+    //       });
+    // }
 
     addStringToSF() async {
       int duration = Helpers.daysBetween(_arrive, _departure);
@@ -68,7 +79,22 @@ class _DateSelectionScreenState extends State<DateSelectionScreen> {
                   _arrive.isAfter(endDate.subtract(const Duration(days: 1)))) &&
               (_departure.isBefore(startDate) ||
                   _departure.isAfter(endDate)))) {
-            _showDialog;
+            showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: const Text("Dates in use"),
+                    content: const Text("You have already used these dates."),
+                    actions: <Widget>[
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: const Text("Ok"),
+                      ),
+                    ],
+                  );
+                });
             return; // Date not usable
           }
         }
@@ -100,7 +126,7 @@ class _DateSelectionScreenState extends State<DateSelectionScreen> {
             icon: const Icon(Icons.check_rounded),
             onPressed: () {
               addStringToSF();
-              Navigator.of(context).pop();
+              // Navigator.of(context).pop();
             },
           ),
         ],
@@ -113,17 +139,24 @@ class _DateSelectionScreenState extends State<DateSelectionScreen> {
               child: Card(
                 elevation: 7,
                 margin: const EdgeInsets.all(15),
-                child: CalendarDatePicker(
-                  initialDate: _dateTimeNotifier.value,
-                  firstDate: DateTime(DateTime.now().year - 100),
-                  lastDate: DateTime(2101),
-                  onDateChanged: (selectedDate) {
-                    _arrive = selectedDate;
-                    _dateTimeNotifier.value = selectedDate;
-                    setState(() {
-                      _buildDepartureCalendar();
-                    });
-                  },
+                child: Theme(
+                  data: Theme.of(context).copyWith(
+                    colorScheme: const ColorScheme.dark(
+                      primary: Colors.teal, // header background color
+                    ),
+                  ),
+                  child: CalendarDatePicker(
+                    initialDate: _dateTimeNotifier.value,
+                    firstDate: DateTime(DateTime.now().year - 100),
+                    lastDate: DateTime(2101),
+                    onDateChanged: (selectedDate) {
+                      _arrive = selectedDate;
+                      _dateTimeNotifier.value = selectedDate;
+                      setState(() {
+                        _buildDepartureCalendar();
+                      });
+                    },
+                  ),
                 ),
               ),
             ),

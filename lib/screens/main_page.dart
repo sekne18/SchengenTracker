@@ -2,9 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
-
 import 'package:schengen_tracker/helpers/helpers.dart';
 import 'package:schengen_tracker/models/trip.dart';
 import 'package:schengen_tracker/widgets/trip_list.dart';
