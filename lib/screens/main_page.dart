@@ -68,50 +68,53 @@ class MainPageState extends State<MainPage> {
     _recentTransactions;
     updateDaysLeft();
     final txListWidget = TripList(_userTrips, _deleteTransaction);
-    final pageBody = SafeArea(
-      child: Column(
-        children: [
-          Container(
-            decoration: const BoxDecoration(
-              color: Colors.teal,
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(45),
-                bottomRight: Radius.circular(45),
-              ),
-            ),
-            width: double.infinity,
-            child: Padding(
-              padding: const EdgeInsets.only(top: 10.0, bottom: 20.0),
-              child: CircularPercentIndicator(
-                radius: 160.0,
-                lineWidth: 7.0,
-                animationDuration: 1000,
-                animation: true,
-                percent: _days_left / 90,
-                center: Text(
-                  "Days left: " + _days_left.toString(),
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold, fontSize: 20.0),
+    final pageBody = Container(
+      color: const Color(0xff121212),
+      child: SafeArea(
+        child: Column(
+          children: [
+            Container(
+              decoration: const BoxDecoration(
+                color: Colors.teal,
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(45),
+                  bottomRight: Radius.circular(45),
                 ),
-                circularStrokeCap: CircularStrokeCap.round,
-                progressColor: Colors.white70,
-                backgroundColor: Colors.teal[700],
               ),
-            ),
-          ),
-          Expanded(
-            child: SingleChildScrollView(
-              physics: const ClampingScrollPhysics(),
-              child: Column(
-                children: <Widget>[
-                  ..._buildPortraitContent(
-                    txListWidget,
+              width: double.infinity,
+              child: Padding(
+                padding: const EdgeInsets.only(top: 10.0, bottom: 20.0),
+                child: CircularPercentIndicator(
+                  radius: 160.0,
+                  lineWidth: 7.0,
+                  animationDuration: 1000,
+                  animation: true,
+                  percent: _days_left / 90,
+                  center: Text(
+                    "Days left: " + _days_left.toString(),
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 20.0),
                   ),
-                ],
+                  circularStrokeCap: CircularStrokeCap.round,
+                  progressColor: Colors.white70,
+                  backgroundColor: Colors.teal[700],
+                ),
               ),
             ),
-          ),
-        ],
+            Expanded(
+              child: SingleChildScrollView(
+                physics: const ClampingScrollPhysics(),
+                child: Column(
+                  children: <Widget>[
+                    ..._buildPortraitContent(
+                      txListWidget,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
     return Platform.isIOS

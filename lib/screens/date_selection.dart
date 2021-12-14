@@ -11,11 +11,9 @@ class DateSelectionScreen extends StatefulWidget {
 }
 
 class _DateSelectionScreenState extends State<DateSelectionScreen> {
-  final ValueNotifier<DateTime> _dateTimeNotifier =
-      ValueNotifier<DateTime>(DateTime.now());
   DateTime _arrive = DateTime.now();
-  DateTime _departure = DateTime.now();
-
+  DateTime _departure = DateTime.now().add(const Duration(days: 1));
+  bool notAvailableDate = false;
   int? duration;
 
   @override
@@ -28,12 +26,8 @@ class _DateSelectionScreenState extends State<DateSelectionScreen> {
           ),
         ),
         child: CalendarDatePicker(
-            initialDate: _dateTimeNotifier.value.add(
-              const Duration(days: 1),
-            ),
-            firstDate: _dateTimeNotifier.value.add(
-              const Duration(days: 1),
-            ),
+            initialDate: _departure,
+            firstDate: _departure,
             lastDate: DateTime(DateTime.now().year + 100),
             onDateChanged: (selectedDate) {
               _departure = selectedDate;
@@ -41,101 +35,127 @@ class _DateSelectionScreenState extends State<DateSelectionScreen> {
       );
     }
 
-    // Future<dynamic> _showDialog(BuildContext context) {
-    //   return showDialog(
-    //       context: context,
-    //       builder: (BuildContext context) {
-    //         return AlertDialog(
-    //           title: const Text("Dates in use"),
-    //           content: const Text("You have already used these dates."),
-    //           shape: const CircleBorder(),
-    //           actions: <Widget>[
-    //             TextButton(
-    //               onPressed: () {
-    //                 Navigator.of(context).pop();
-    //               },
-    //               child: const Text("Ok"),
-    //             ),
-    //           ],
-    //         );
-    //       });
-    // }
-
     addStringToSF() async {
       int duration = Helpers.daysBetween(_arrive, _departure);
-      DateFormat dateFormat = DateFormat.yMMMMd();
-
-      String? tripsString = Helpers.prefs.getString('listOfTrips');
-      List<Trip> _userTrips;
+      notAvailableDate = false;
       final String encodedData;
+      String? tripsString = Helpers.prefs.getString('listOfTrips');
 
       if (tripsString != null) {
         List<Trip> _userTrips = Trip.decode(tripsString);
-        bool used = false;
+
         for (int i = 0; i < _userTrips.length; i++) {
           DateTime startDate = DateTime.parse(_userTrips[i].arrive);
           DateTime endDate = DateTime.parse(_userTrips[i].departure);
           if (!((_arrive.isBefore(startDate) ||
                   _arrive.isAfter(endDate.subtract(const Duration(days: 1)))) &&
               (_departure.isBefore(startDate) ||
-                  _departure.isAfter(endDate)))) {
-            showDialog(
-                context: context,
-                builder: (BuildContext context) {
-                  return AlertDialog(
-                    title: const Text("Dates in use"),
-                    content: const Text("You have already used these dates."),
-                    actions: <Widget>[
-                      TextButton(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                        child: const Text("Ok"),
-                      ),
-                    ],
-                  );
-                });
-            return; // Date not usable
+                  _departure
+                      .isAfter(endDate.subtract(const Duration(days: 1)))))) {
+            notAvailableDate = true;
+            return;
           }
         }
-        _userTrips.add(Trip(
-          id: _arrive.toString(),
-          arrive: _arrive.toString(),
-          departure: _departure.toString(),
-          duration: duration,
-        ));
-        encodedData = Trip.encode(_userTrips);
-        Helpers.prefs.setString('listOfTrips', encodedData);
-      } else {
-        encodedData = Trip.encode([
+
+        _userTrips.add(
           Trip(
             id: _arrive.toString(),
             arrive: _arrive.toString(),
             departure: _departure.toString(),
             duration: duration,
           ),
-        ]);
-        Helpers.prefs.setString('listOfTrips', encodedData);
+        );
+        encodedData = Trip.encode(_userTrips);
+      } else {
+        encodedData = Trip.encode(
+          [
+            Trip(
+              id: _arrive.toString(),
+              arrive: _arrive.toString(),
+              departure: _departure.toString(),
+              duration: duration,
+            ),
+          ],
+        );
       }
+      Helpers.prefs.setString('listOfTrips', encodedData);
+      Navigator.of(context).pop();
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.check_rounded),
-            onPressed: () {
-              addStringToSF();
-              // Navigator.of(context).pop();
-            },
-          ),
-        ],
-      ),
-      body: SafeArea(
+    return Container(
+      color: const Color(0xff121212),
+      child: SafeArea(
         child: Column(
           children: [
             Expanded(
-              flex: 5,
+              flex: 1,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    margin: const EdgeInsets.only(left: 10),
+                    child: CircleAvatar(
+                      backgroundColor: Colors.transparent,
+                      child: TextButton(
+                        child: const Icon(
+                          Icons.arrow_back,
+                          color: Colors.teal,
+                        ),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                    ),
+                  ),
+                  Container(
+                    margin: const EdgeInsets.only(right: 20),
+                    child: CircleAvatar(
+                      backgroundColor: Colors.transparent,
+                      child: TextButton(
+                        child: const Icon(
+                          Icons.check_rounded,
+                          color: Colors.teal,
+                        ),
+                        onPressed: () {
+                          addStringToSF();
+                          if (notAvailableDate) {
+                            showDialog(
+                              context: context,
+                              barrierDismissible: false,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  titleTextStyle: const TextStyle(
+                                    color: Colors.teal,
+                                  ),
+                                  title: const Text("Dates in use"),
+                                  content: const Text(
+                                      "You have already used these dates."),
+                                  actions: <Widget>[
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                      child: const Text(
+                                        "Ok",
+                                        style: TextStyle(
+                                          color: Colors.teal,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          }
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              flex: 8,
               child: Card(
                 elevation: 7,
                 margin: const EdgeInsets.all(15),
@@ -146,12 +166,12 @@ class _DateSelectionScreenState extends State<DateSelectionScreen> {
                     ),
                   ),
                   child: CalendarDatePicker(
-                    initialDate: _dateTimeNotifier.value,
+                    initialDate: _arrive,
                     firstDate: DateTime(DateTime.now().year - 100),
                     lastDate: DateTime(2101),
                     onDateChanged: (selectedDate) {
                       _arrive = selectedDate;
-                      _dateTimeNotifier.value = selectedDate;
+                      _departure = selectedDate.add(const Duration(days: 1));
                       setState(() {
                         _buildDepartureCalendar();
                       });
@@ -161,7 +181,7 @@ class _DateSelectionScreenState extends State<DateSelectionScreen> {
               ),
             ),
             Expanded(
-              flex: 5,
+              flex: 8,
               child: Card(
                 elevation: 7,
                 margin: const EdgeInsets.only(bottom: 15, left: 15, right: 15),
